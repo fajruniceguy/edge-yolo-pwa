@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./model/**)",
+      "Read(./**/*.onnx)",
+      "Read(./**/*.pt)",
+      "Read(./**/*.bin)"
+    ]
+  }
+}

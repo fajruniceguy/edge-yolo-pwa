@@ -1,0 +1,5 @@
+model/
+tools/.venv/
+tools/fixtures/golden/
+node_modules/
+dist/
