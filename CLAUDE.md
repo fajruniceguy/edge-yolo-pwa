@@ -34,12 +34,14 @@ docs/benchmarks.md     # measured numbers only
 
 Python: venv in `tools/.venv`. Deps: ultralytics, onnx, onnxruntime, numpy, opencv-python-headless, pandas. Node deps beyond vite, react, typescript, vitest, onnxruntime-web, onnxruntime-node, vite-plugin-pwa: **ask first**.
 
-## Model contract (EXPECTED — confirm in Phase 0, then mark confirmed)
+## Model contract (CONFIRMED — Phase 0, `tools/inspect_onnx.py` against `model/best.onnx`)
 
 Exported with `format="onnx", imgsz=640, simplify=True, opset=12`, all else default → static shape, FP32, no NMS in graph.
 
 - Input `images`: float32 `[1, 3, 640, 640]`, RGB, NCHW, values 0–1
 - Output `output0`: float32 `[1, 5, 8400]`, **channel-major**: for anchor i, `cx = d[0*8400+i]`, `cy = d[1*8400+i]`, `w = d[2*8400+i]`, `h = d[3*8400+i]`, `score = d[4*8400+i]`. Coordinates in 640×640 letterboxed pixel space. YOLOv8 has no objectness; with one class, channel 4 is the final score.
+
+Inspected: opset 12, ir_version 7, file size 42.67 MB, 234 nodes / 14 distinct op types, no `NonMaxSuppression` node (confirms no NMS in graph). Input/output names, shapes, and dtypes match exactly as specified above.
 
 ## Preprocessing (must mirror ultralytics LetterBox, fixed 640, auto=False)
 
@@ -100,8 +102,8 @@ Gate: real numbers from a real phone in `docs/benchmarks.md`.
 
 ## Status
 
-- [ ] Phase 0
-- [ ] Phase 1
+- [x] Phase 0
+- [x] Phase 1
 - [ ] Phase 2
 - [ ] Phase 3
 - [ ] Phase 4

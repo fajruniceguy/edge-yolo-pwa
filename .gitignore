@@ -3,3 +3,5 @@ tools/.venv/
 tools/fixtures/golden/
 node_modules/
 dist/
+__pycache__/
+*.pyc
