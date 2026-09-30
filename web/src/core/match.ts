@@ -1,4 +1,4 @@
-import type { Detection } from '../src/core/types';
+import type { Detection } from './types';
 
 function iou(a: Detection, b: Detection): number {
   const x1 = Math.max(a.x1, b.x1);

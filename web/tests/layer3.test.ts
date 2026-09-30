@@ -7,7 +7,7 @@ import { decode } from '../src/core/decode';
 import { nms } from '../src/core/nms';
 import type { Detection, LetterboxMeta } from '../src/core/types';
 import { unmap } from '../src/core/unmap';
-import { greedyMatch } from './match';
+import { greedyMatch } from '../src/core/match';
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const GOLDEN_DIR = path.join(REPO_ROOT, 'tools', 'fixtures', 'golden');
@@ -21,7 +21,7 @@ const MATCH_GATE_PCT = 99;
 
 const STEMS = ['test_208', 'test_505', 'test_805', 'test_1577', 'test_2418'];
 
-const goldenReady = existsSync(path.join(GOLDEN_DIR, 'meta.json'));
+const goldenReady = existsSync(path.join(GOLDEN_DIR, 'meta.json')) && existsSync(MODEL_PATH);
 
 function readFloat32(filePath: string): Float32Array {
   const buf = readFileSync(filePath);
@@ -32,7 +32,7 @@ describe('Layer 3 parity (decode/NMS)', () => {
   it.skipIf(!goldenReady)(
     goldenReady
       ? 'TS dets match Python dets >= 99% on every image; report densest-image NMS time'
-      : 'SKIPPED: golden fixtures missing — run tools/reference.py first',
+      : 'SKIPPED: golden fixtures or model/best.onnx missing — see README',
     async () => {
       const meta: Record<string, LetterboxMeta> = JSON.parse(
         readFileSync(path.join(GOLDEN_DIR, 'meta.json'), 'utf-8'),

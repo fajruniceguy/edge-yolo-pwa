@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>CompVis parity (dev only)</title>
+    <style>
+      body { font: 14px/1.4 system-ui, sans-serif; margin: 16px; }
+      .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 8px; }
+      button { padding: 6px 12px; font: inherit; }
+      #status { margin: 8px 0; min-height: 1.4em; }
+      progress { width: 240px; vertical-align: middle; }
+      pre { font: 12px/1.35 ui-monospace, Consolas, monospace; overflow-x: auto; padding: 8px; border: 1px solid #8884; white-space: pre; }
+    </style>
+  </head>
+  <body>
+    <h1 style="font-size: 18px; margin: 0 0 8px">CompVis /dev/parity <small>(dev server only, not in dist)</small></h1>
+    <div class="controls">
+      <label>EP
+        <select id="ep">
+          <option value="auto">auto (webgpu → wasm)</option>
+          <option value="webgpu">webgpu only</option>
+          <option value="wasm">wasm only</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="cache" checked /> use model cache</label>
+      <label><input type="checkbox" id="sweep" checked /> sweep canvas smoothing (low/medium/high)</label>
+      <button id="run">Run</button>
+      <button id="clear">Clear model cache</button>
+      <button id="copy" disabled>Copy result</button>
+    </div>
+    <div id="status">idle</div>
+    <progress id="bar" value="0" max="1" hidden></progress>
+    <pre id="out">(press Run)</pre>
+    <script type="module" src="/src/dev/parity.ts"></script>
+  </body>
+</html>
