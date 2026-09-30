@@ -3,6 +3,11 @@
 Canonical SKU-110K originals — MD5 and ground-truth box count per image.
 Check `tools/fixtures/images/*.jpg` against these before trusting parity results.
 
+The images and `ground_truth.csv` are **not stored in this repository** (SKU-110K is licensed for
+academic/non-commercial use). Get the five test images from the SKU-110K dataset, put them in
+`tools/fixtures/images/`, and verify them with `md5sum` (Windows: `Get-FileHash -Algorithm MD5`).
+`ground_truth.csv` has columns `image,x1,y1,x2,y2,class,image_width,image_height`.
+
 | file | md5 | ground-truth boxes |
 |---|---|---|
 | test_208.jpg | dd556bd8a1979f8e98ccc7b3ef3eed89 | 111 |

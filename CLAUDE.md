@@ -21,8 +21,8 @@ Interaction model is **capture-then-process**, not live video. Latency of 1–3 
 ```
 model/                 # gitignored. best.onnx (42.67 MB), best.pt, data.yaml
 tools/                 # Python reference harness
-  fixtures/images/     # 5 raw SKU-110K test images (test_208, 505, 805, 1577, 2418)
-  fixtures/ground_truth.csv
+  fixtures/images/     # gitignored (SKU-110K is non-commercial; not redistributed): 5 raw test images (test_208, 505, 805, 1577, 2418)
+  fixtures/ground_truth.csv  # gitignored, same reason
   fixtures/golden/     # generated: <name>.input.bin, <name>.raw.bin, <name>.dets.json, meta.json
 web/                   # Vite + React + TypeScript
   src/core/            # pure TS: letterbox, decode, nms, unmap. No DOM.

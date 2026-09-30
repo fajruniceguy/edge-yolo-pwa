@@ -1,7 +1,27 @@
+# Model weights (not distributed; see README)
 model/
+
+# Python
 tools/.venv/
-tools/fixtures/golden/
-node_modules/
-dist/
 __pycache__/
 *.pyc
+
+# Generated golden fixtures (run tools/reference.py)
+tools/fixtures/golden/
+
+# SKU-110K data: academic/non-commercial licence, not redistributed here (see README)
+tools/fixtures/images/
+tools/fixtures/ground_truth.csv
+tools/fixtures/unsorted/
+docs/previews/
+
+# Node / build
+node_modules/
+dist/
+
+# Local environment + tooling state
+.env
+.env.*
+!.env.example
+.DS_Store
+.claude/*.lock
