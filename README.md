@@ -1,12 +1,17 @@
 # CompVis PWA
 
+## Credits
+
+- Model training: **Valda Veisa**
+- PWA and in-browser inference: **Fajru Rahman**
+  
 A Progressive Web App that counts densely packed retail shelf products **on-device, in the browser**. Take a photo, a YOLOv8s detector runs locally through [onnxruntime-web](https://onnxruntime.ai/), and the app shows boxes and an object count. There is no inference server.
 
 > **Status: work in progress.** The inference core and browser runtime are built and parity-tested; the user-facing app, PWA packaging, deployment and phone benchmarks are not done yet. See [Status](#status).
 
 ## What the model is (and is not)
 
-- Trained by **Valda Veisa** on [SKU-110K](https://github.com/eg4000/SKU110K_CVPR19): densely packed **retail shelf products**.
+- Trained by **Valda Veisa** on [SKU-110K](https://github.com/eg4000/SKU110K_CVPR19): densely packed **retail shelf products**. Available publicly at kaggle.com/code/valdaveisa15/output-warehouse
 - **Single class** (`nc: 1`, name `object`). It detects "a product is here". It does **not** classify products, and it is not a warehouse or multi-class detector.
 - YOLOv8s, fixed 640×640 input, FP32, exported to ONNX (opset 12) with no NMS in the graph.
 - Test-set metrics from training (640, evaluated on a T4 GPU; 2,935 images, 431,419 instances): mAP50 0.928, mAP50-95 0.577, precision 0.913, recall 0.866. These are accuracy numbers, not browser latency.
@@ -112,8 +117,3 @@ The Apache-2.0 license covers this repository's source code only (see [`LICENSE`
 - **SKU-110K**: the dataset is provided for academic and non-commercial use. Its images and annotations are not redistributed here; obtain them from the authors. Goldman et al., *Precise Detection in Densely Packed Scenes*, CVPR 2019.
 - **The trained model**: not distributed. It derives from Ultralytics YOLOv8, which is licensed under AGPL-3.0 (or an Ultralytics enterprise license); check those terms before distributing the weights or a service built on them.
 - **onnxruntime-web / onnxruntime-node**: MIT, used as dependencies.
-
-## Credits
-
-- Model training: **Valda Veisa**
-- PWA and in-browser inference: **Fajru Rahman**
