@@ -105,7 +105,7 @@ Gate: real numbers from a real phone in `docs/benchmarks.md`.
 - [x] Phase 0
 - [x] Phase 1
 - [x] Phase 2
-- [ ] Phase 3
+- [x] Phase 3 — Verified on WASM (Edge 154, Win, 4 threads, ~1,450 ms infer) and WebGPU (Chrome 154, Intel Gen-9 iGPU, ~355 ms infer warm, 1.3 s session create). Canvas smoothing low identical across both. All at imgsz 640; details in `docs/benchmarks.md`.
 - [ ] Phase 4
 - [ ] Phase 5
 - [ ] Phase 6

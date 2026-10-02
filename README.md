@@ -26,7 +26,7 @@ The trained weights are **not included** in this repository (see [Third-party te
 | 0 | Inspect ONNX, confirm model contract | done |
 | 1 | Python reference harness, golden fixtures, export and pipeline parity | done |
 | 2 | TypeScript decode / NMS / unmap, parity vs Python | done |
-| 3 | Browser runtime: worker, WebGPU→WASM selection, model cache, OffscreenCanvas letterbox, `/dev/parity` | implemented; desktop-Chrome gate run pending |
+| 3 | Browser runtime: worker, WebGPU→WASM selection, model cache, OffscreenCanvas letterbox, `/dev/parity` | done; verified on desktop WASM and WebGPU, see [`docs/benchmarks.md`](docs/benchmarks.md) |
 | 4 | App UI: capture, overlay, count, timings, confidence slider | not started (`/` is still a placeholder scaffold) |
 | 5 | PWA: manifest, offline, ORT precache | not started |
 | 6 | Deploy (COOP/COEP host) and real-phone benchmarks | not started |
@@ -43,7 +43,7 @@ Parity is checked in three isolated layers against 5 SKU-110K test images. "Matc
 | 2. Python pipeline | my letterbox+decode+NMS vs ultralytics `predict` on the ONNX | 100% matched on all 5 images (119 / 173 / 251 / 120 / 131 detections) |
 | 3. TypeScript | TS decode+NMS on the saved raw output vs Python detections | 100% matched on all 5 images, max score diff 0 |
 
-Layer 3's preprocessing half (canvas letterbox vs OpenCV) is what `/dev/parity` measures in a browser. A preliminary run in **headless Edge 154 on Windows, imgsz 640** gave: canvas smoothing `low` keeps detection counts within 2.5% of Python (letterbox tensor max abs diff 0.043 on a 0–1 scale, mean about 0.002) on both the WASM and WebGPU paths, while `medium`/`high` drift up to −20% on one image. That is not the desktop-Chrome gate; run `/dev/parity` yourself to reproduce it.
+Layer 3's preprocessing half (canvas letterbox vs OpenCV) is what `/dev/parity` measures in a browser. A preliminary run in **headless Edge 154 on Windows, imgsz 640** gave: canvas smoothing `low` keeps detection counts within 2.5% of Python (letterbox tensor max abs diff 0.043 on a 0–1 scale, mean about 0.002) on both the WASM and WebGPU paths, while `medium`/`high` drift up to −20% on one image. The Phase 3 gate runs (desktop Edge 154 on WASM, Chrome 154 on WebGPU) are summarised in [`docs/benchmarks.md`](docs/benchmarks.md); run `/dev/parity` to reproduce them.
 
 **Known limit:** the model misses many small products. On `test_1577` recall is 0.58 against 0.84–0.99 on the other four images. Details and per-image tables are in [`tools/fixtures/README.md`](tools/fixtures/README.md). Parity with the Python pipeline says nothing about accuracy against ground truth.
 
