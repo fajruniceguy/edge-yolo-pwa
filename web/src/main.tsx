@@ -1,0 +1,16 @@
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { App } from './app/App';
+import './app/app.css';
+import { lang, t } from './app/strings';
+
+document.documentElement.lang = lang;
+document.title = t.appTitle;
+
+const root = document.getElementById('root');
+if (!root) throw new Error('#root not found');
+createRoot(root).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);

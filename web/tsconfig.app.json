@@ -8,7 +8,6 @@
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
     "strict": true,
-    "allowJs": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "types": ["vite/client"],

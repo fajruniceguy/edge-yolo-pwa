@@ -1,0 +1,307 @@
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --text: #111827;
+  --muted: #566070;
+  --accent: #1d4ed8;
+  --accent-text: #ffffff;
+  --border: #d3d8e0;
+  --box: #22c55e;
+  --box-halo: rgba(0, 0, 0, 0.75);
+  --danger: #b91c1c;
+  --danger-bg: #fdecec;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115;
+    --surface: #1a1d24;
+    --text: #eceef2;
+    --muted: #a0a9b8;
+    --accent: #7aa2ff;
+    --accent-text: #0b1020;
+    --border: #2c313b;
+    --danger: #fca5a5;
+    --danger-bg: #3a1d1d;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.45;
+}
+
+.screen {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px max(16px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+p {
+  margin: 0;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.mono {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-size: 1.1rem;
+}
+
+.btn:focus-within,
+.btn:focus-visible,
+input[type='range']:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn.is-disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+progress {
+  width: 100%;
+  height: 10px;
+}
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.notice-error {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.notice-error summary {
+  cursor: pointer;
+}
+
+/* Photo + overlay. --ar (width/height) is set inline so the box has the photo's aspect before decode. */
+.stage {
+  position: relative;
+  justify-self: center;
+  width: min(100%, calc(70dvh * var(--ar, 1)));
+  aspect-ratio: var(--ar, 1);
+  margin-inline: auto;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.stage.preview {
+  --ar: 0.75;
+  aspect-ratio: auto;
+  width: 100%;
+  max-height: 70dvh;
+}
+
+.stage img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.stage.preview img {
+  height: auto;
+  max-height: 70dvh;
+  opacity: 0.55;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.overlay path {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+}
+
+.box-halo {
+  stroke: var(--box-halo);
+  stroke-width: 3.5;
+}
+
+.box {
+  stroke: var(--box);
+  stroke-width: 1.75;
+}
+
+.busy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 3s;
+  }
+}
+
+.count {
+  text-align: center;
+}
+
+.count-number {
+  font-size: clamp(56px, 20vw, 104px);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.count-label {
+  margin-top: 4px;
+  font-size: 1.05rem;
+  color: var(--muted);
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control input[type='range'] {
+  width: 100%;
+  min-height: 44px;
+  accent-color: var(--accent);
+}
+
+.timings {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.timings dt {
+  color: var(--muted);
+}
+
+.timings dd {
+  margin: 0;
+  text-align: right;
+}
+
+.timings .total {
+  font-weight: 700;
+  color: var(--text);
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+}
+
+.timings .rerun {
+  font-size: 0.9rem;
+}
+
+footer {
+  padding-top: 4px;
+}

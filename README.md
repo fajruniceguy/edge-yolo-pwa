@@ -7,7 +7,7 @@
   
 A Progressive Web App that counts densely packed retail shelf products **on-device, in the browser**. Take a photo, a YOLOv8s detector runs locally through [onnxruntime-web](https://onnxruntime.ai/), and the app shows boxes and an object count. There is no inference server.
 
-> **Status: work in progress.** The inference core and browser runtime are built and parity-tested; the user-facing app, PWA packaging, deployment and phone benchmarks are not done yet. See [Status](#status).
+> **Status: work in progress.** The inference core, browser runtime and the capture-to-count app are built and parity-tested on desktop browsers; PWA packaging, deployment and phone benchmarks are not done yet. See [Status](#status).
 
 ## What the model is (and is not)
 
@@ -27,7 +27,7 @@ The trained weights are **not included** in this repository (see [Third-party te
 | 1 | Python reference harness, golden fixtures, export and pipeline parity | done |
 | 2 | TypeScript decode / NMS / unmap, parity vs Python | done |
 | 3 | Browser runtime: worker, WebGPU→WASM selection, model cache, OffscreenCanvas letterbox, `/dev/parity` | done; verified on desktop WASM and WebGPU, see [`docs/benchmarks.md`](docs/benchmarks.md) |
-| 4 | App UI: capture, overlay, count, timings, confidence slider | not started (`/` is still a placeholder scaffold) |
+| 4 | App UI: capture, overlay, count, timings, confidence slider | implemented and checked end to end in headless Edge (dev server and production build, desktop and phone-sized viewport); not yet tried on a phone |
 | 5 | PWA: manifest, offline, ORT precache | not started |
 | 6 | Deploy (COOP/COEP host) and real-phone benchmarks | not started |
 
@@ -60,7 +60,7 @@ npm run build
 npm run dev            # http://localhost:5173
 ```
 
-`npm run dev` serves with COOP/COEP headers so WASM threads work (`crossOriginIsolated`). The page at `/` is a pre-existing placeholder scaffold that Phase 4 replaces.
+`npm run dev` serves with COOP/COEP headers so WASM threads work (`crossOriginIsolated`). The page at `/` is the app: choose or take a photo (`<input type="file" accept="image/*" capture="environment">`), see the box overlay (boxes only, no labels), a large count, per-stage timings, and a confidence slider that re-runs decode + NMS on the cached raw output without running the model again. The UI is in Indonesian or English following `navigator.language`. In dev the model is served from `../model/best.onnx`; set `VITE_MODEL_URL` (see `web/.env.example`) to load it from elsewhere. Production hosting of the model is a Phase 6 decision, so a plain `npm run build` has no model URL that works yet.
 
 ### `/dev/parity` (dev server only)
 
@@ -90,7 +90,7 @@ python tools/eval_gt.py                  # TP/FP/FN vs ground truth at IoU 0.5
 ## How it works
 
 - **Preprocessing** mirrors ultralytics `LetterBox` (fixed 640, `auto=False`): resize keeping aspect, pad with 114, RGB, `/255`, HWC→CHW. EXIF orientation is respected via `createImageBitmap(blob, { imageOrientation: 'from-image' })`. In the browser the resize is an `OffscreenCanvas` draw inside the worker; canvas resampling is not `cv2.INTER_LINEAR`, so the tensor difference is measured, not assumed.
-- **Postprocessing** mirrors ultralytics `non_max_suppression`: keep `score > conf`, xywh→xyxy, sort, cap at 30,000 candidates, greedy class-agnostic NMS, unmap to original pixels and clip. `max_det` is 300 for parity tests; the app default will be 1000 because dense shelves exceed 300.
+- **Postprocessing** mirrors ultralytics `non_max_suppression`: keep `score > conf`, xywh→xyxy, sort, cap at 30,000 candidates, greedy class-agnostic NMS, unmap to original pixels and clip. `max_det` is 300 for parity tests; the app uses 1000 because dense shelves exceed 300.
 - **Runtime**: a module Web Worker loads the model (byte-progress fetch → Cache Storage), then tries the `onnxruntime-web/webgpu` build and falls back to `onnxruntime-web/wasm`. The two are separate ORT builds, so which EP loaded is known exactly and is logged together with `crossOriginIsolated` and the thread count. ORT's Emscripten glue and `.wasm` files are not bundled; they are served untouched from `/ort/`.
 - **Type safety**: `tsconfig.app.json` and `tsconfig.worker.json` do not include Node types; only `tsconfig.node.json` (tests and config) does.
 
@@ -104,7 +104,7 @@ tools/                  Python reference harness and fixtures docs
 web/                    Vite + React + TypeScript
   src/core/             pure TS: letterbox, decode, NMS, unmap, postprocess, match (no DOM)
   src/worker/           inference Web Worker: ORT session, model cache, letterbox
-  src/app/              main-thread client for the worker (UI arrives in Phase 4)
+  src/app/              the UI (React) and the main-thread client for the worker
   src/dev/, dev/        /dev/parity page (dev server only)
   devtools/             Vite plugins: COOP/COEP, ORT file serving, dev-only fixtures
   tests/                vitest parity tests (Node + onnxruntime-node)
