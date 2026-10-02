@@ -89,7 +89,7 @@ Gate: desktop Chrome, all 5 images, counts within a few % of golden. Report lett
 **Phase 5 — PWA.** vite-plugin-pwa: manifest, icons, shell + ORT wasm precache. Model stays in our own cache, not the SW precache. Offline works after first load. iOS add-to-home-screen hint.
 
 **Phase 6 — Deploy + bench.** Host must send COOP/COEP (WASM threads need `crossOriginIsolated`). 42.67 MB model may exceed per-file limits on some hosts — verify; fallback is a Hugging Face model repo (CORS-enabled). `/bench` route: fixed images, N runs, cold first run reported separately, median + p90 per stage (preprocess / inference / NMS / total), EP, thread count, UA, copy-as-JSON.
-Gate: real numbers from a real phone in `docs/benchmarks.md`.
+Gate: real numbers from a real phone in `docs/benchmarks.md`, taken under the "Measurement conditions" listed there (charging state, power mode, efficiency mode off, screen on, room temperature, N ≥ 10 warm runs, median + p90).
 
 **Phase 7 (conditional)** — re-export at imgsz 416/320 and FP16 from `best.pt`. Any accuracy claim at a new imgsz requires re-running `val(split="test")` at that imgsz on Kaggle. Until then, no accuracy number is attached to it.
 
