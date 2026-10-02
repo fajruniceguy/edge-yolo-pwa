@@ -21,6 +21,15 @@ export interface Strings {
   session: (ep: string, threads: number, source: string) => string;
   sourceNetwork: string;
   sourceCache: string;
+  offlineReady: string;
+  offlinePreparing: string;
+  offlineNoModel: string;
+  offlineUnavailable: string;
+  updateAvailable: string;
+  updateNow: string;
+  later: string;
+  iosHint: string;
+  dismiss: string;
 }
 
 const id: Strings = {
@@ -54,6 +63,15 @@ const id: Strings = {
   session: (ep, threads, source) => `Mesin: ${ep} · ${threads} thread · model dari ${source}`,
   sourceNetwork: 'jaringan',
   sourceCache: 'cache',
+  offlineReady: 'Offline: siap dipakai tanpa internet.',
+  offlinePreparing: 'Offline: sedang disiapkan…',
+  offlineNoModel: 'Offline: model belum tersimpan (penyimpanan penuh?).',
+  offlineUnavailable: 'Offline: tidak tersedia di peramban atau konteks ini.',
+  updateAvailable: 'Versi baru tersedia.',
+  updateNow: 'Muat ulang',
+  later: 'Nanti',
+  iosHint: 'Pasang ke layar utama: ketuk tombol Bagikan, lalu "Tambah ke Layar Utama".',
+  dismiss: 'Tutup',
 };
 
 const en: Strings = {
@@ -87,6 +105,15 @@ const en: Strings = {
   session: (ep, threads, source) => `Engine: ${ep} · ${threads} threads · model from ${source}`,
   sourceNetwork: 'network',
   sourceCache: 'cache',
+  offlineReady: 'Offline: ready to work without internet.',
+  offlinePreparing: 'Offline: getting ready…',
+  offlineNoModel: 'Offline: the model is not stored (storage full?).',
+  offlineUnavailable: 'Offline: not available in this browser or context.',
+  updateAvailable: 'A new version is available.',
+  updateNow: 'Reload',
+  later: 'Later',
+  iosHint: 'Install: tap the Share button, then "Add to Home Screen".',
+  dismiss: 'Dismiss',
 };
 
 export const lang: 'id' | 'en' = navigator.language.toLowerCase().startsWith('id') ? 'id' : 'en';

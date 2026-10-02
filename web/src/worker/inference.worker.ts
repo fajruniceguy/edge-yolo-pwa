@@ -24,11 +24,12 @@ async function handle(req: WorkerRequest) {
         if (model.source === 'cache') await model.evict(); // do not keep re-loading a cached copy that fails
         throw err;
       }
-      await model.commit(); // cache only a model that actually produced a session
+      const modelCached = await model.commit(); // cache only a model that actually produced a session
       const info: SessionInfo = {
         ...backend.info,
         modelSource: model.source,
         modelBytes: model.bytes.length,
+        modelCached,
         fetchMs: model.fetchMs,
       };
       console.log(

@@ -7,7 +7,7 @@
   
 A Progressive Web App that counts densely packed retail shelf products **on-device, in the browser**. Take a photo, a YOLOv8s detector runs locally through [onnxruntime-web](https://onnxruntime.ai/), and the app shows boxes and an object count. There is no inference server.
 
-> **Status: work in progress.** The inference core, browser runtime and the capture-to-count app are built and parity-tested on desktop browsers; PWA packaging, deployment and phone benchmarks are not done yet. See [Status](#status).
+> **Status: work in progress.** The inference core, browser runtime and the capture-to-count app are built and parity-tested on desktop browsers; deployment and phone benchmarks are not done yet. See [Status](#status).
 
 ## What the model is (and is not)
 
@@ -28,7 +28,7 @@ The trained weights are **not included** in this repository (see [Third-party te
 | 2 | TypeScript decode / NMS / unmap, parity vs Python | done |
 | 3 | Browser runtime: worker, WebGPU→WASM selection, model cache, OffscreenCanvas letterbox, `/dev/parity` | done; verified on desktop WASM and WebGPU, see [`docs/benchmarks.md`](docs/benchmarks.md) |
 | 4 | App UI: capture, overlay, count, timings, confidence slider | implemented and checked end to end in headless Edge (dev server and production build, desktop and phone-sized viewport); not yet tried on a phone |
-| 5 | PWA: manifest, offline, ORT precache | not started |
+| 5 | PWA: manifest, icons, offline, ORT precache, iOS hint | implemented; offline checked in headless Edge (production build); waiting for a manual Chrome DevTools offline test, see [Offline](#offline-pwa) |
 | 6 | Deploy (COOP/COEP host) and real-phone benchmarks | not started |
 
 There are **no browser latency benchmarks yet**; they will go in `docs/benchmarks.md` once measured on a real phone.
@@ -65,6 +65,32 @@ npm run dev            # http://localhost:5173
 ### `/dev/parity` (dev server only)
 
 With `model/best.onnx` and the golden fixtures in place (next section), open `http://localhost:5173/dev/parity`, pick an execution provider, press **Run**, then **Copy result**. It runs the 5 fixture images through the full worker pipeline and prints a plain-text report: detection count and match % vs the Python golden output, letterbox tensor diff vs `input.bin`, EP numerics (golden input tensor straight into the session), per-stage timings, EP, thread count and cross-origin-isolation state. The page and the model/fixture routes exist only under `vite serve`; none of it is in a production build.
+
+## Offline (PWA)
+
+After one online visit the app starts and runs with no network.
+
+- **Service worker** (vite-plugin-pwa, Workbox): precaches the app shell, the icons and manifest, **and the onnxruntime-web glue + `.wasm` files for both builds** (WebGPU and plain WASM, because the runtime only decides at start-up). That is 23 manifest entries, 40.5 MiB uncompressed; the two `.wasm` files are 14.2 and 26.8 MB raw and Vite's gzip estimate is 3.7 and 6.7 MB, so what you download depends on whether the host compresses them.
+- **The model is not in the service-worker precache.** The worker keeps `best.onnx` in its own Cache Storage entry (`compvis-model-v1`) and writes it only after a session was created from it, so a host that answers a missing file with an HTML page cannot poison the cache. The app asks the browser for persistent storage (`navigator.storage.persist()`).
+- The footer shows **Offline: ready** only when both halves exist (an active service worker and the model in the cache).
+- **Updates** never reload the page by themselves: a new version waits and a banner offers "Reload".
+- **iOS** has no install prompt, so on iPhone/iPad Safari or Chrome (when not already installed) a dismissible hint explains Share, then "Add to Home Screen".
+- The service worker only exists in production builds, not under `npm run dev`.
+
+### Repeat the offline test in Chrome
+
+```bash
+cd web
+npm run build
+mkdir dist/model && cp ../model/best.onnx dist/model/    # dist/ is gitignored; a rebuild wipes it, so copy again
+npm run preview                                          # http://localhost:4173
+```
+
+1. Open `http://localhost:4173` in a fresh profile or Incognito window. Wait until the footer shows both the engine line ("Engine: … model from network") and **"Offline: ready to work without internet."**
+2. DevTools (F12) → **Application → Service Workers**: status should be "activated and is running". Under **Cache Storage** you should see `workbox-precache-v2-…` (shell + `ort/*.wasm`) and `compvis-model-v1` with 1 entry.
+3. In **Application → Service Workers**, tick **Offline**, then reload (Ctrl+R). The page must load, the footer must say "model from cache", and taking or choosing a photo must give a count and boxes.
+4. For a stricter check, stop `npm run preview` (Ctrl+C) with Offline unticked and reload: it must still work, because the service worker answers everything.
+5. Untick **Offline** when done. To start over: Application → Storage → "Clear site data".
 
 ## Fixtures and the Python reference harness
 
@@ -104,7 +130,7 @@ tools/                  Python reference harness and fixtures docs
 web/                    Vite + React + TypeScript
   src/core/             pure TS: letterbox, decode, NMS, unmap, postprocess, match (no DOM)
   src/worker/           inference Web Worker: ORT session, model cache, letterbox
-  src/app/              the UI (React) and the main-thread client for the worker
+  src/app/              the UI (React), PWA registration/update/iOS hint, main-thread client for the worker
   src/dev/, dev/        /dev/parity page (dev server only)
   devtools/             Vite plugins: COOP/COEP, ORT file serving, dev-only fixtures
   tests/                vitest parity tests (Node + onnxruntime-node)

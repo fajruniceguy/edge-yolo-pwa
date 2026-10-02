@@ -4,8 +4,8 @@ export interface LoadedModel {
   bytes: Uint8Array;
   source: 'network' | 'cache';
   fetchMs: number;
-  /** Store the bytes in Cache Storage. Call only after the session was created from them (no-op for a cache hit). */
-  commit: () => Promise<void>;
+  /** Store the bytes in Cache Storage; true if the model is in the cache afterwards. Call only after the session was created from them. */
+  commit: () => Promise<boolean>;
   /** Drop this URL's cache entry (used when a cached copy fails to load). */
   evict: () => Promise<void>;
 }
@@ -30,7 +30,7 @@ export async function loadModel(url: string, useCache: boolean, onProgress: Prog
     if (hit) {
       const bytes = new Uint8Array(await hit.arrayBuffer());
       onProgress(bytes.length, bytes.length);
-      return { bytes, source: 'cache', fetchMs: performance.now() - t0, commit: async () => {}, evict };
+      return { bytes, source: 'cache', fetchMs: performance.now() - t0, commit: async () => true, evict };
     }
   }
 
@@ -69,8 +69,10 @@ export async function loadModel(url: string, useCache: boolean, onProgress: Prog
         url,
         new Response(bytes, { headers: { 'Content-Type': 'application/octet-stream', 'Content-Length': String(loaded) } }),
       );
+      return true;
     } catch (e) {
       console.warn('[compvis] model not cached (quota?):', e instanceof Error ? e.message : e);
+      return false;
     }
   };
 

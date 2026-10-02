@@ -48,6 +48,8 @@ export interface SessionInfo {
   webgpuSkipReason: string | null;
   modelSource: 'network' | 'cache';
   modelBytes: number;
+  /** The model is in Cache Storage (a cache hit, or stored after this load). False if storing failed (quota). */
+  modelCached: boolean;
   fetchMs: number;
   sessionMs: number;
 }

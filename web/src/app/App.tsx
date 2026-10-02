@@ -6,6 +6,8 @@ import { CONF_MAX, CONF_MIN, CONF_STEP, DEFAULT_CONF, IOU, MAX_DET } from './con
 import { fmtMB, fmtMs } from './format';
 import type { StageTimings } from './inference-client';
 import { ensureModel, useModelState } from './model';
+import { PwaBanners } from './PwaBanners';
+import { swSupported, usePwaState } from './pwa';
 import { ResultView } from './ResultView';
 import { t } from './strings';
 
@@ -32,6 +34,7 @@ function friendlyError(err: unknown): { text: string; detail: string } {
 
 export function App() {
   const model = useModelState();
+  const pwa = usePwaState();
   const [phase, setPhase] = useState<Phase>('idle');
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
@@ -87,12 +90,24 @@ export function App() {
 
   const busy = phase === 'processing';
 
+  // Offline is only claimed when both halves exist: an active service worker (shell + ORT wasm precached)
+  // and the model stored in our own Cache Storage entry.
+  const offline: 'ready' | 'preparing' | 'no-model' | 'unsupported' = !swSupported
+    ? 'unsupported'
+    : !pwa.swActive
+      ? 'preparing'
+      : model.status === 'ready' && !model.info.modelCached
+        ? 'no-model'
+        : 'ready';
+
   return (
     <main className="screen" data-phase={phase} data-model={model.status}>
       <header>
         <h1>{t.appTitle}</h1>
         {phase === 'idle' && <p className="muted">{t.tagline}</p>}
       </header>
+
+      <PwaBanners />
 
       <label className={`btn btn-primary${busy ? ' is-disabled' : ''}`}>
         <input
@@ -205,11 +220,21 @@ export function App() {
       )}
 
       {model.status === 'ready' && (
-        <footer className="muted" data-testid="session">
-          {t.session(
-            model.info.ep === 'webgpu' ? 'WebGPU' : 'WASM',
-            model.info.numThreads,
-            model.info.modelSource === 'cache' ? t.sourceCache : t.sourceNetwork,
+        <footer className="muted">
+          <p data-testid="session">
+            {t.session(
+              model.info.ep === 'webgpu' ? 'WebGPU' : 'WASM',
+              model.info.numThreads,
+              model.info.modelSource === 'cache' ? t.sourceCache : t.sourceNetwork,
+            )}
+          </p>
+          {import.meta.env.PROD && (
+            <p data-testid="offline" data-offline={offline}>
+              {offline === 'ready' && t.offlineReady}
+              {offline === 'preparing' && t.offlinePreparing}
+              {offline === 'no-model' && t.offlineNoModel}
+              {offline === 'unsupported' && t.offlineUnavailable}
+            </p>
           )}
         </footer>
       )}
