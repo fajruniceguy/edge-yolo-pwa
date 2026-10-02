@@ -18,7 +18,13 @@ async function handle(req: WorkerRequest) {
       const model = await loadModel(req.modelUrl, req.useCache, (loaded, total) =>
         post({ type: 'progress', id: req.id, loaded, total }),
       );
-      backend = await createBackend(model.bytes, req.ep);
+      try {
+        backend = await createBackend(model.bytes, req.ep);
+      } catch (err) {
+        if (model.source === 'cache') await model.evict(); // do not keep re-loading a cached copy that fails
+        throw err;
+      }
+      await model.commit(); // cache only a model that actually produced a session
       const info: SessionInfo = {
         ...backend.info,
         modelSource: model.source,
