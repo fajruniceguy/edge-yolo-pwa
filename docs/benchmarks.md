@@ -225,6 +225,10 @@ Two single photos analysed in the deployed app (`https://compvis-pwa.vercel.app`
 
 The two runs are different photos in different states, and inference differs by about 20% between them; that spread is why the protocol needs N >= 10 warm runs, median and p90, and recorded conditions.
 
+### Running it: `/bench`
+
+Open `/bench` on the phone (the deployed site, or a dev/preview build over `adb reverse`), pick the photo set from the gallery, tick the conditions you have met, run at least 10 passes, and copy the JSON (or the summary text). The page checks the rules below that it can see (charging state, wake lock held, page never hidden, passes, cancelled), takes your word for the three it cannot (battery saver, efficiency mode, room temperature), and prints "not protocol-compliant" with the reasons if any fail. Statistics are medians and 90th percentiles by linear interpolation (numpy's default) over the warm runs; the cold run is separate. Add results below only from runs it marks as compliant.
+
 ### Measurement conditions
 
 Phone numbers are only comparable if the conditions are fixed and written down next to the numbers. For every phone result:

@@ -109,6 +109,15 @@ npx vercel --prod           # first run asks to set up and link a project; later
 - The model is served from the same origin at `/model/best.onnx` (override with `VITE_MODEL_URL`). **A public production URL lets anyone download the weights**; read [Third-party terms](#third-party-terms) first. Vercel protects preview URLs behind a Vercel login by default, and production URLs are public.
 - After deploying, check the live URL: cross-origin isolated, model loads, a photo gives a count, and the offline test below works on it.
 
+## Benchmark (`/bench`)
+
+`/bench` times the whole pipeline on the device you open it on, using photos you pick from that device's gallery (they never leave it, and the report contains no file names). It is a developer page in English; the app itself does not link to it.
+
+1. Pick the photos (use the same set every time you compare), choose configurations (what the app does, WebGPU only, WASM with the default or an explicit thread count; "WASM thread sweep" selects 1 to 4 threads) and the number of passes (the protocol needs at least 10).
+2. Confirm the conditions it cannot read itself: battery saver off, browser efficiency mode off, phone at room temperature. Battery level and charging state are read automatically where the browser exposes them (Chrome on Android does); the screen is kept awake during the run.
+3. Run. Each configuration runs in a fresh worker (the thread count is read once at start-up). The first run is reported as the cold run and kept out of the statistics; the rest give median and p90 per stage (preprocess, inference, NMS, total, plus main-thread wall time) and a drift figure (how much slower the last third of the run was than the first).
+4. "Copy as JSON" or "Copy summary text". The report says whether the run followed the [measurement protocol](docs/benchmarks.md#measurement-conditions) and lists what it missed. It also records the real device model and browser version (from the browser's UA client hints), the EP that loaded, the thread count ORT settled on, and why WebGPU was not used when it was not.
+
 ## Fixtures and the Python reference harness
 
 The reference harness needs three things that are **not in the repo**:

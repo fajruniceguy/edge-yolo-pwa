@@ -9,6 +9,8 @@ export interface InitRequest {
   modelUrl: string;
   ep: EpChoice;
   useCache: boolean;
+  /** Explicit env.wasm.numThreads (bench thread sweep). Unset = ORT's default. Applied before the session is created. */
+  numThreads?: number;
 }
 
 export interface RunRequest {

@@ -54,8 +54,11 @@ async function build(
   ep: 'webgpu' | 'wasm',
   adapter: string | null,
   skip: string | null,
+  numThreads?: number,
 ): Promise<Backend> {
   ort.env.wasm.wasmPaths = ortPrefix();
+  // ORT reads numThreads when its wasm runtime starts, so this only works on a fresh module instance (a new worker).
+  if (numThreads && numThreads > 0) ort.env.wasm.numThreads = numThreads;
   const t0 = performance.now();
   const session = await ort.InferenceSession.create(bytes, {
     executionProviders: [ep],
@@ -95,7 +98,7 @@ async function build(
  * EP selection: 'auto' tries WebGPU first, then wasm. The two are separate ORT builds, so the EP that
  * loaded is known exactly (no silent in-session fallback).
  */
-export async function createBackend(bytes: Uint8Array, choice: EpChoice): Promise<Backend> {
+export async function createBackend(bytes: Uint8Array, choice: EpChoice, numThreads?: number): Promise<Backend> {
   let skip: string | null = null;
 
   if (choice !== 'wasm') {
@@ -103,7 +106,7 @@ export async function createBackend(bytes: Uint8Array, choice: EpChoice): Promis
     if (probe.ok) {
       try {
         const ort = (await import('onnxruntime-web/webgpu')) as unknown as OrtModule;
-        return await build(ort, bytes, 'webgpu', probe.adapter, null);
+        return await build(ort, bytes, 'webgpu', probe.adapter, null, numThreads);
       } catch (e) {
         skip = `WebGPU session failed: ${errMsg(e)}`;
       }
@@ -114,5 +117,5 @@ export async function createBackend(bytes: Uint8Array, choice: EpChoice): Promis
   }
 
   const ort = await import('onnxruntime-web/wasm');
-  return build(ort, bytes, 'wasm', null, skip);
+  return build(ort, bytes, 'wasm', null, skip, numThreads);
 }

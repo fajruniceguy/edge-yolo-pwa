@@ -1,8 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './app/App';
 import './app/app.css';
 import { initPwa } from './app/pwa';
+import { Root } from './app/Root';
 import { lang, t } from './app/strings';
 
 document.documentElement.lang = lang;
@@ -13,6 +13,6 @@ const root = document.getElementById('root');
 if (!root) throw new Error('#root not found');
 createRoot(root).render(
   <StrictMode>
-    <App />
+    <Root />
   </StrictMode>,
 );

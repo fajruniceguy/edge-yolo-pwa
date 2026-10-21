@@ -79,11 +79,11 @@ export class InferenceClient {
   }
 
   async init(
-    opts: { modelUrl: string; ep?: EpChoice; useCache?: boolean },
+    opts: { modelUrl: string; ep?: EpChoice; useCache?: boolean; numThreads?: number },
     onProgress?: (loaded: number, total: number | null) => void,
   ): Promise<ClientSessionInfo> {
     const res = await this.call(
-      { type: 'init', modelUrl: opts.modelUrl, ep: opts.ep ?? 'auto', useCache: opts.useCache ?? true },
+      { type: 'init', modelUrl: opts.modelUrl, ep: opts.ep ?? 'auto', useCache: opts.useCache ?? true, numThreads: opts.numThreads },
       [],
       onProgress,
     );

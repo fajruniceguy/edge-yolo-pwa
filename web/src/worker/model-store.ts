@@ -6,8 +6,6 @@ export interface LoadedModel {
   fetchMs: number;
   /** Store the bytes in Cache Storage; true if the model is in the cache afterwards. Call only after the session was created from them. */
   commit: () => Promise<boolean>;
-  /** Drop this URL's cache entry (used when a cached copy fails to load). */
-  evict: () => Promise<void>;
 }
 
 export type ProgressFn = (loaded: number, total: number | null) => void;
@@ -16,21 +14,20 @@ export type ProgressFn = (loaded: number, total: number | null) => void;
  * Model bytes: Cache Storage hit, else network with byte progress.
  * Nothing is written to the cache here: a host that answers a missing file with an HTML page (SPA fallback)
  * or a truncated body must not be able to poison the cache, so the caller commits after the model loads.
+ * A cached entry therefore always produced a session once; a later failure (wrong EP, ORT files unavailable) says
+ * nothing about the model, so a failed load never deletes it.
  * (navigator.storage.persist() is Window-only; the client calls it.)
  */
 export async function loadModel(url: string, useCache: boolean, onProgress: ProgressFn): Promise<LoadedModel> {
   const t0 = performance.now();
   const cache = await caches.open(CACHE_NAME);
-  const evict = async () => {
-    await cache.delete(url);
-  };
 
   if (useCache) {
     const hit = await cache.match(url);
     if (hit) {
       const bytes = new Uint8Array(await hit.arrayBuffer());
       onProgress(bytes.length, bytes.length);
-      return { bytes, source: 'cache', fetchMs: performance.now() - t0, commit: async () => true, evict };
+      return { bytes, source: 'cache', fetchMs: performance.now() - t0, commit: async () => true };
     }
   }
 
@@ -76,7 +73,7 @@ export async function loadModel(url: string, useCache: boolean, onProgress: Prog
     }
   };
 
-  return { bytes, source: 'network', fetchMs: performance.now() - t0, commit, evict };
+  return { bytes, source: 'network', fetchMs: performance.now() - t0, commit };
 }
 
 export async function clearModelCache(): Promise<void> {
