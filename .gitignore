@@ -31,3 +31,4 @@ dist/
 .claude/*.lock
 .commandcode/
 .vercel
+/web/deploy/

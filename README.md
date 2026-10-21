@@ -98,9 +98,10 @@ The model is gitignored, so a git-connected deploy would ship without it. Deploy
 
 ```bash
 cd web
-npm run build:deploy        # vite build, then copies vercel.json and model/best.onnx into dist/ and checks the size
+npm run build:deploy        # vite build, then assembles web/deploy/ (dist + vercel.json + model) and checks the size
 npx vercel login            # once
-npx vercel deploy dist --prod
+cd deploy
+npx vercel --prod           # first run asks to set up and link a project; later runs reuse web/deploy/.vercel
 ```
 
 - `web/vercel.json` sends the COOP/COEP/CORP headers on every response (needed for `crossOriginIsolated` and WASM threads) and long-caches the hashed `/assets/`.
