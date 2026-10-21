@@ -201,7 +201,42 @@ With canvas smoothing `low`, detection counts were within 2.5% of the Python gol
 
 ## Phone results (Phase 6)
 
-**No protocol-compliant phone benchmark yet.** To be filled from the `/bench` route on real phones: fixed images, N runs, cold first run reported separately, median and p90 per stage (preprocess / inference / NMS / total), EP, thread count, user agent. Until then, the only phone numbers are the informal single runs below.
+### First protocol-compliant run: POCO M4 Pro, WASM thread sweep
+
+Run on 2026-10-21 09:35 to 09:46 UTC with `/bench` on the deployed site. The page marked it **compliant** (battery saver, efficiency mode and room temperature were attested by the tester; charging state, wake lock and page visibility were measured). One session, one phone.
+
+| | |
+|---|---|
+| Device | POCO M4 Pro, model `2201117PG`, platform version 11.0.0 (UA client hints), 8 logical cores, `navigator.deviceMemory` 4 GB |
+| Browser | Chrome 155.0.8059.84 for Android |
+| EP | WASM (WebGPU not used: `requestAdapter()` returned null); `crossOriginIsolated = true` |
+| imgsz / model | 640 / `best.onnx` from Cache Storage |
+| Power | on battery (unplugged), 70% at start and 67% at end; battery saver off (attested) |
+| Photos | 3 gallery photos, each 2608 x 4624 (12.06 MP, 2.7 to 3.1 MB); detections per photo [8, 104, 84] in every configuration |
+| Protocol | 10 passes x 3 photos = 30 runs per configuration: 1 cold + 29 warm. Configurations ran one after another in this order: 1, 2, 3, 4, 6, 8 threads, each in a fresh worker |
+
+All times in ms; "med / p90" over the 29 warm runs; cold = the first run of that configuration.
+
+| Threads | Cold total | Preprocess med / p90 | Inference med / p90 | Inference min to max | NMS med / p90 | Total med / p90 | Drift % |
+|---:|---:|---|---|---|---|---|---:|
+| 1 | 4,070 | 603 / 673 | 3,449 / 3,518 | 3,388 to 3,736 | 1.2 / 6.8 | 4,035 / 4,137 | -1.1 |
+| 2 | 2,196 | 566 / 623 | **1,923** / 2,145 | 1,756 to 3,086 | 1.2 / 1.7 | **2,463** / 2,750 | +2.1 |
+| 3 | 5,454 | 453 / 527 | 4,319 / 5,339 | 3,524 to 5,682 | 1.6 / 8.2 | 4,756 / 5,792 | +18.4 |
+| 4 | 5,022 | 420 / 540 | 3,478 / 4,918 | 1,965 to 8,494 | 2.7 / 11.6 | 3,864 / 5,383 | -41.8 |
+| 6 | 3,206 | 415 / 461 | 2,648 / 3,173 | 2,355 to 4,131 | 3.7 / 12.1 | 3,076 / 3,651 | -7.1 |
+| 8 | 3,119 | 444 / 524 | 3,682 / 5,469 | 2,280 to 12,258 | 8.4 / 17.5 | 4,093 / 5,950 | +37.9 |
+
+Drift = change of the median inference time between the first and last third of the warm runs (positive = slower at the end).
+
+What this does and does not show:
+
+- **1 thread to 2 threads is a real speed-up (about 1.8x on inference)**, and both runs were steady (drift -1.1% and +2.1%, p90 within 2% and 12% of the median).
+- **3, 4, 6 and 8 threads were not faster than 2 in this run, and were much less steady** (p90 / median of 1.24, 1.41, 1.20 and 1.49, against 1.12 for 2 threads). Their drift values (+18%, -42%, -7%, +38%) say the phone's state changed while they ran, so they cannot be ranked against each other or against 2 threads from this run alone.
+- **The same configuration measured very differently minutes apart.** An earlier single-configuration run on the same phone and the same 4-thread setting (flagged non-compliant only because of a wake-lock reporting bug in `/bench`, fixed in `a229c00`) measured warm inference 1,998 / 2,131 ms (median / p90, 29 runs, drift +0.85%, total 2,312 / 2,570 ms, 78% to 77% battery). The 4-thread block in the sweep above measured 3,478 / 4,918. That is a 75% difference for one setting, so ordering and time effects are larger than the differences between 2, 4 and 6 threads.
+- **No cause is established** for the slow, noisy blocks (background load, CPU frequency and scheduling on a big.LITTLE chip, or heat were not separated). The configurations were not interleaved, so any of them could have run in a worse moment.
+- Against the 1 to 3 s target for WASM: median total was within it only for 2 threads (2.46 s) and for the earlier 4-thread run (2.31 s).
+- **Preprocess** (decode + letterbox of a 12 MP photo) was 415 to 603 ms median, 10 to 15% of the total; **NMS** was negligible (1 to 8 ms). Letterbox time is bimodal (about 25 to 40 ms or 100 to 160 ms) in every configuration.
+- Cold runs were close to warm for WASM (no large warm-up penalty); session creation took 0.4 to 1.6 s.
 
 ### Informal first runs (not benchmarks)
 
@@ -244,4 +279,9 @@ Phone numbers are only comparable if the conditions are fixed and written down n
 
 | Device | Browser + version | EP | Threads | imgsz | Charging | Power mode | Cold first run (ms) | Median / p90 preprocess | Median / p90 inference | Median / p90 NMS | Median / p90 total |
 |---|---|---|---:|---:|---|---|---:|---|---|---|---|
-| _pending_ | | | | 640 | | | | | | | |
+| POCO M4 Pro (2201117PG, Android 11) | Chrome 155.0.8059.84 | WASM | 1 | 640 | unplugged, 70% to 67% | battery saver off (attested) | 4,070 | 603 / 673 | 3,449 / 3,518 | 1.2 / 6.8 | 4,035 / 4,137 |
+| POCO M4 Pro (2201117PG, Android 11) | Chrome 155.0.8059.84 | WASM | 2 | 640 | unplugged, 70% to 67% | battery saver off (attested) | 2,196 | 566 / 623 | 1,923 / 2,145 | 1.2 / 1.7 | 2,463 / 2,750 |
+| POCO M4 Pro (2201117PG, Android 11) | Chrome 155.0.8059.84 | WASM | 3 | 640 | unplugged, 70% to 67% | battery saver off (attested) | 5,454 | 453 / 527 | 4,319 / 5,339 | 1.6 / 8.2 | 4,756 / 5,792 |
+| POCO M4 Pro (2201117PG, Android 11) | Chrome 155.0.8059.84 | WASM | 4 | 640 | unplugged, 70% to 67% | battery saver off (attested) | 5,022 | 420 / 540 | 3,478 / 4,918 | 2.7 / 11.6 | 3,864 / 5,383 |
+| POCO M4 Pro (2201117PG, Android 11) | Chrome 155.0.8059.84 | WASM | 6 | 640 | unplugged, 70% to 67% | battery saver off (attested) | 3,206 | 415 / 461 | 2,648 / 3,173 | 3.7 / 12.1 | 3,076 / 3,651 |
+| POCO M4 Pro (2201117PG, Android 11) | Chrome 155.0.8059.84 | WASM | 8 | 640 | unplugged, 70% to 67% | battery saver off (attested) | 3,119 | 444 / 524 | 3,682 / 5,469 | 8.4 / 17.5 | 4,093 / 5,950 |

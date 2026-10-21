@@ -29,7 +29,7 @@ The trained weights are **not included** in this repository (see [Third-party te
 | 3 | Browser runtime: worker, WebGPU→WASM selection, model cache, OffscreenCanvas letterbox, `/dev/parity` | done; verified on desktop WASM and WebGPU, see [`docs/benchmarks.md`](docs/benchmarks.md) |
 | 4 | App UI: capture, overlay, count, timings, confidence slider | done; checked end to end in headless Edge and on a POCO M4 Pro (Chrome for Android) |
 | 5 | PWA: manifest, icons, offline, ORT precache, iOS hint | done; offline verified in headless Edge and on a POCO M4 Pro in airplane mode, see [Offline](#offline-pwa) (iOS hint not tested on a device) |
-| 6 | Deploy (COOP/COEP host) and real-phone benchmarks | not started |
+| 6 | Deploy (COOP/COEP host) and real-phone benchmarks | in progress: deployed on Vercel, `/bench` built, first protocol-compliant phone sweep recorded in [`docs/benchmarks.md`](docs/benchmarks.md); a drift-proof comparison of thread counts is still open |
 
 There are **no browser latency benchmarks yet**; they will go in `docs/benchmarks.md` once measured on a real phone.
 
