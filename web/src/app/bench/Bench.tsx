@@ -203,7 +203,7 @@ export function Bench() {
           <input type="checkbox" checked={attested.batterySaverOff} onChange={() => setAttested((a) => ({ ...a, batterySaverOff: !a.batterySaverOff }))} data-testid="att-saver" /> Battery saver / power mode is off
         </label>
         <label className="check">
-          <input type="checkbox" checked={attested.efficiencyModeOff} onChange={() => setAttested((a) => ({ ...a, efficiencyModeOff: !a.efficiencyModeOff }))} data-testid="att-eff" /> Browser efficiency / energy saver is off
+          <input type="checkbox" checked={attested.efficiencyModeOff} onChange={() => setAttested((a) => ({ ...a, efficiencyModeOff: !a.efficiencyModeOff }))} data-testid="att-eff" /> Browser efficiency / energy saver is off, or this browser has no such setting (Chrome on Android may have none)
         </label>
         <label className="check">
           <input type="checkbox" checked={attested.roomTemperature} onChange={() => setAttested((a) => ({ ...a, roomTemperature: !a.roomTemperature }))} data-testid="att-temp" /> Phone is at room temperature (not warm from charging, sun or a pocket)
