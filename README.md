@@ -137,6 +137,7 @@ python tools/inspect_onnx.py             # model contract summary
 python tools/reference.py                # writes tools/fixtures/golden/ (gitignored)
 python tools/compare.py                  # parity layers 1 and 2 + detections vs ground truth
 python tools/eval_gt.py                  # TP/FP/FN vs ground truth at IoU 0.5
+python tools/conf_sweep.py               # precision/recall/F1 vs confidence and NMS-IoU on the 5 fixtures
 ```
 
 ## How it works
