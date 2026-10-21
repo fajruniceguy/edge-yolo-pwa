@@ -235,7 +235,7 @@ Phone numbers are only comparable if the conditions are fixed and written down n
 
 - **Charging state**: record it (plugged in or on battery) and keep it the same for all runs of one result.
 - **Battery saver / power mode**: off, and record the mode. Low-power modes throttle CPU and GPU clocks.
-- **Browser efficiency / energy-saving mode**: off (for example Edge efficiency mode, Chrome energy saver).
+- **Browser efficiency / energy-saving mode**: off (for example Edge efficiency mode, Chrome Energy Saver / Memory Saver on desktop). Chrome for Android may have none of these; if its settings show none, treat the condition as met and rely on the phone's own battery saver and per-app battery restriction (set the browser to no restrictions).
 - **Screen**: on and awake for the whole run, app in the foreground.
 - **Temperature**: phone at room temperature at the start (not just taken out of a pocket, a car or a charger). Note if the device feels warm at the end; a thermally throttled run is reported as such, not averaged in silently.
 - **Runs**: N >= 10 warm runs per image set after the cold first run, which is reported separately.
