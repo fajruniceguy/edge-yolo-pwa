@@ -201,7 +201,29 @@ With canvas smoothing `low`, detection counts were within 2.5% of the Python gol
 
 ## Phone results (Phase 6)
 
-**Not measured yet.** To be filled from the `/bench` route on real phones: fixed images, N runs, cold first run reported separately, median and p90 per stage (preprocess / inference / NMS / total), EP, thread count, user agent.
+**No protocol-compliant phone benchmark yet.** To be filled from the `/bench` route on real phones: fixed images, N runs, cold first run reported separately, median and p90 per stage (preprocess / inference / NMS / total), EP, thread count, user agent. Until then, the only phone numbers are the informal single runs below.
+
+### Informal first runs (not benchmarks)
+
+Two single photos analysed in the deployed app (`https://compvis-pwa.vercel.app`, production build) on a POCO M4 Pro, read from screenshots. One run each, no repeats, no conditions controlled: treat them as an order of magnitude, not a result. All times in ms.
+
+| | Run A | Run B |
+|---|---:|---:|
+| Device | POCO M4 Pro | POCO M4 Pro |
+| Browser | Chrome for Android (version not recorded) | Chrome for Android (version not recorded) |
+| Android version | not recorded | not recorded |
+| EP / threads / imgsz | WASM / 4 / 640 | WASM / 4 / 640 |
+| Model source | network (first visit) | Cache Storage (airplane mode, offline reload) |
+| Battery / charging / power mode | 45% / not recorded / not recorded | 43% / not recorded / not recorded |
+| Decode | 172 | 189 |
+| Letterbox | 171 | 28.6 |
+| Inference | 2,411 | 2,886 |
+| Postprocess (decode + NMS) | 2.3 | 1.1 |
+| **Total** | **2,757** | **3,105** |
+| Slider re-run (decode + NMS only) | 0.1 | not shown |
+| Detections | 8 | 9 |
+
+The two runs are different photos in different states, and inference differs by about 20% between them; that spread is why the protocol needs N >= 10 warm runs, median and p90, and recorded conditions.
 
 ### Measurement conditions
 

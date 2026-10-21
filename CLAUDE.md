@@ -106,6 +106,6 @@ Gate: real numbers from a real phone in `docs/benchmarks.md`, taken under the "M
 - [x] Phase 1
 - [x] Phase 2
 - [x] Phase 3 — Verified on WASM (Edge 154, Win, 4 threads, ~1,450 ms infer) and WebGPU (Chrome 154, Intel Gen-9 iGPU, ~355 ms infer warm, 1.3 s session create). Canvas smoothing low identical across both. All at imgsz 640; details in `docs/benchmarks.md`.
-- [ ] Phase 4
-- [ ] Phase 5
+- [x] Phase 4 — Verified on a POCO M4 Pro (Chrome for Android, WASM 4 threads, imgsz 640, https://compvis-pwa.vercel.app): photo → count + box overlay + per-stage timings + confidence slider (re-run 0.1 ms, no re-inference). Informal single runs: 2,757 ms and 3,105 ms total (inference 2,411 and 2,886 ms); Chrome/Android versions not recorded. Desktop: headless Edge end to end on the dev server and a production build. Details in `docs/benchmarks.md`.
+- [x] Phase 5 — Offline verified in headless Edge on a production build (preview server stopped; DevTools-style Offline) and on the POCO M4 Pro in airplane mode ("model from cache", photo analysed). Installability errors: none. Update banner and iOS hint verified in headless Edge only; no iOS device tested. Precache: shell + both ORT builds (23 entries, ~40.5 MiB raw); the model stays in its own cache.
 - [ ] Phase 6

@@ -27,8 +27,8 @@ The trained weights are **not included** in this repository (see [Third-party te
 | 1 | Python reference harness, golden fixtures, export and pipeline parity | done |
 | 2 | TypeScript decode / NMS / unmap, parity vs Python | done |
 | 3 | Browser runtime: worker, WebGPU→WASM selection, model cache, OffscreenCanvas letterbox, `/dev/parity` | done; verified on desktop WASM and WebGPU, see [`docs/benchmarks.md`](docs/benchmarks.md) |
-| 4 | App UI: capture, overlay, count, timings, confidence slider | implemented and checked end to end in headless Edge (dev server and production build, desktop and phone-sized viewport); not yet tried on a phone |
-| 5 | PWA: manifest, icons, offline, ORT precache, iOS hint | implemented; offline checked in headless Edge (production build); waiting for a manual Chrome DevTools offline test, see [Offline](#offline-pwa) |
+| 4 | App UI: capture, overlay, count, timings, confidence slider | done; checked end to end in headless Edge and on a POCO M4 Pro (Chrome for Android) |
+| 5 | PWA: manifest, icons, offline, ORT precache, iOS hint | done; offline verified in headless Edge and on a POCO M4 Pro in airplane mode, see [Offline](#offline-pwa) (iOS hint not tested on a device) |
 | 6 | Deploy (COOP/COEP host) and real-phone benchmarks | not started |
 
 There are **no browser latency benchmarks yet**; they will go in `docs/benchmarks.md` once measured on a real phone.
