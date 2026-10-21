@@ -4,6 +4,7 @@ import { DEFAULT_CONF, IOU, MAX_DET } from '../config';
 import { collectEnvironment, readBattery } from './env';
 import type { Battery, BenchEnvironment } from './env';
 import { MIN_WARM_PASSES, protocolIssues } from './protocol';
+import { holdWakeLock } from './wakelock';
 import { PRESETS, THREAD_SWEEP_IDS, formatSummary, runConfigs } from './runner';
 import type { BenchReport } from './runner';
 
@@ -63,18 +64,8 @@ export function Bench() {
     const startedAt = new Date().toISOString();
 
     // Keep the screen on for the whole run (a protocol condition) and notice if the page is ever hidden.
-    let wakeLockHeld = false;
     let hiddenDuringRun = false;
-    let lock: WakeLockSentinel | null = null;
-    try {
-      lock = (await navigator.wakeLock?.request('screen')) ?? null;
-      wakeLockHeld = lock !== null;
-      lock?.addEventListener('release', () => {
-        wakeLockHeld = false;
-      });
-    } catch {
-      wakeLockHeld = false;
-    }
+    const wake = await holdWakeLock();
     const onVis = () => {
       if (document.visibilityState === 'hidden') hiddenDuringRun = true;
     };
@@ -93,8 +84,10 @@ export function Bench() {
       });
     } finally {
       document.removeEventListener('visibilitychange', onVis);
-      await lock?.release().catch(() => {});
+      await wake.release();
     }
+    const wakeLock = wake.status();
+    const wakeLockHeld = wakeLock.acquired && !wakeLock.lostDuringRun;
     const batteryEnd = await readBattery();
     const environment = env ?? (await collectEnvironment());
 
@@ -117,7 +110,7 @@ export function Bench() {
       settings: { passes, imageCount: files.length, imgsz: 640, smoothing: 'low', conf: DEFAULT_CONF as 0.25, iou: IOU, maxDet: MAX_DET },
       images: out.images,
       environment,
-      conditions: { batteryStart, batteryEnd, chargingManual, wakeLockHeld, hiddenDuringRun, attested },
+      conditions: { batteryStart, batteryEnd, chargingManual, wakeLockHeld, wakeLock, hiddenDuringRun, attested },
       protocolCompliant: issues.length === 0,
       protocolIssues: issues,
       results: out.results,

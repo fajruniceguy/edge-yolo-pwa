@@ -2,6 +2,7 @@ import { DEFAULT_CONF, IOU, MAX_DET, MODEL_URL } from '../config';
 import { InferenceClient } from '../inference-client';
 import type { ClientSessionInfo, EpChoice } from '../inference-client';
 import type { BenchEnvironment, Battery } from './env';
+import type { WakeLockStatus } from './wakelock';
 import { driftPct, summarise } from './stats';
 import type { Sample, StageStats } from './stats';
 
@@ -158,6 +159,7 @@ export interface BenchReport {
     batteryEnd: Battery | null;
     chargingManual: 'unknown' | 'plugged' | 'unplugged';
     wakeLockHeld: boolean;
+    wakeLock: WakeLockStatus;
     hiddenDuringRun: boolean;
     attested: { batterySaverOff: boolean; efficiencyModeOff: boolean; roomTemperature: boolean };
   };
@@ -180,7 +182,7 @@ export function formatSummary(r: BenchReport): string {
   L.push(`crossOriginIsolated=${r.environment.crossOriginIsolated} | imgsz ${r.settings.imgsz} | ${r.settings.passes} passes x ${r.settings.imageCount} image(s) | conf ${r.settings.conf} iou ${r.settings.iou} max_det ${r.settings.maxDet}`);
   const b0 = r.conditions.batteryStart;
   const b1 = r.conditions.batteryEnd;
-  L.push(`battery: ${b0 ? `${Math.round(b0.level * 100)}% ${b0.charging ? 'charging' : 'unplugged'}` : `n/a (manual: ${r.conditions.chargingManual})`} -> ${b1 ? `${Math.round(b1.level * 100)}% ${b1.charging ? 'charging' : 'unplugged'}` : 'n/a'} | wake lock held: ${r.conditions.wakeLockHeld} | page hidden: ${r.conditions.hiddenDuringRun}`);
+  L.push(`battery: ${b0 ? `${Math.round(b0.level * 100)}% ${b0.charging ? 'charging' : 'unplugged'}` : `n/a (manual: ${r.conditions.chargingManual})`} -> ${b1 ? `${Math.round(b1.level * 100)}% ${b1.charging ? 'charging' : 'unplugged'}` : 'n/a'} | wake lock held: ${r.conditions.wakeLockHeld}${r.conditions.wakeLock.error ? ` (${r.conditions.wakeLock.error})` : ''}${r.conditions.wakeLock.lostDuringRun ? ' (lost during run)' : ''} | page hidden: ${r.conditions.hiddenDuringRun}`);
   L.push(`images: ${r.images.map((i) => `#${i.index} ${i.width}x${i.height} (${i.megapixels.toFixed(1)} MP, ${(i.bytes / 1e6).toFixed(1)} MB)`).join('; ')}`);
   if (r.protocolIssues.length) L.push(`protocol issues: ${r.protocolIssues.join('; ')}`);
   L.push('');
