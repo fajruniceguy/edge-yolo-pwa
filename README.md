@@ -92,6 +92,11 @@ npm run preview                                          # http://localhost:4173
 4. For a stricter check, stop `npm run preview` (Ctrl+C) with Offline unticked and reload: it must still work, because the service worker answers everything.
 5. Untick **Offline** when done. To start over: Application → Storage → "Clear site data".
 
+## Troubleshooting on a phone
+
+- **Force the engine or thread count from the URL**, without a new build: `/?ep=wasm`, `/?ep=webgpu`, `/?threads=2`, or combine them (`/?ep=wasm&threads=2`). Invalid values are ignored, and the footer says when settings are forced. Useful when WebGPU misbehaves on one device.
+- **Copy diagnostics**: the footer button (and the error screens) copy one block of text with the browser and device model, engine, thread count, cross-origin isolation, model and cache state, storage, service worker state and the last error. It contains no photos and no file names. Paste it into a message when something fails.
+
 ## Deploy to Vercel
 
 The model is gitignored, so a git-connected deploy would ship without it. Deploy a prepared `dist/` with the Vercel CLI instead:
@@ -116,6 +121,7 @@ npx vercel --prod           # first run asks to set up and link a project; later
 1. Pick the photos (use the same set every time you compare), choose configurations (what the app does, WebGPU only, WASM with the default or an explicit thread count; "WASM thread sweep" selects 1 to 4 threads) and the number of passes (the protocol needs at least 10).
 2. Confirm the conditions it cannot read itself: battery saver off, browser efficiency mode off, phone at room temperature. Battery level and charging state are read automatically where the browser exposes them (Chrome on Android does); the screen is kept awake during the run.
 3. Run. Each configuration runs in a fresh worker (the thread count is read once at start-up). The first run is reported as the cold run and kept out of the statistics; the rest give median and p90 per stage (preprocess, inference, NMS, total, plus main-thread wall time) and a drift figure (how much slower the last third of the run was than the first).
+   To compare configurations, use **Interleaved** order (up to 4 at once): every configuration runs on every photo in turn with a rotating start, so heat and slow-downs affect them equally, and the report gives paired ratios against the first one. One-after-another order is confounded by drift (a phone gets hot and slows down during a long run); it can add a pause between configurations to let the phone cool.
 4. "Copy as JSON" or "Copy summary text". The report says whether the run followed the [measurement protocol](docs/benchmarks.md#measurement-conditions) and lists what it missed. It also records the real device model and browser version (from the browser's UA client hints), the EP that loaded, the thread count ORT settled on, and why WebGPU was not used when it was not.
 
 ## Fixtures and the Python reference harness

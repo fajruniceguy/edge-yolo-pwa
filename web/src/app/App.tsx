@@ -5,7 +5,8 @@ import type { Detection, LetterboxMeta } from '../core';
 import { CONF_MAX, CONF_MIN, CONF_STEP, DEFAULT_CONF, IOU, MAX_DET } from './config';
 import { fmtMB, fmtMs } from './format';
 import type { StageTimings } from './inference-client';
-import { ensureModel, useModelState } from './model';
+import { DiagnosticsButton } from './Diagnostics';
+import { ensureModel, overrides, useModelState } from './model';
 import { PwaBanners } from './PwaBanners';
 import { swSupported, usePwaState } from './pwa';
 import { ResultView } from './ResultView';
@@ -139,6 +140,7 @@ export function App() {
           <button type="button" className="btn" onClick={() => ensureModel().catch(() => {})}>
             {t.retry}
           </button>
+          <DiagnosticsButton error={null} timings={null} />
         </div>
       )}
 
@@ -159,6 +161,7 @@ export function App() {
             <summary>{t.technical}</summary>
             <p className="mono">{error.detail}</p>
           </details>
+          <DiagnosticsButton error={error} timings={analysis?.timings ?? null} />
         </div>
       )}
 
@@ -219,8 +222,8 @@ export function App() {
         </>
       )}
 
-      {model.status === 'ready' && (
-        <footer className="muted">
+      <footer className="muted">
+        {model.status === 'ready' && (
           <p data-testid="session">
             {t.session(
               model.info.ep === 'webgpu' ? 'WebGPU' : 'WASM',
@@ -228,16 +231,18 @@ export function App() {
               model.info.modelSource === 'cache' ? t.sourceCache : t.sourceNetwork,
             )}
           </p>
-          {import.meta.env.PROD && (
-            <p data-testid="offline" data-offline={offline}>
-              {offline === 'ready' && t.offlineReady}
-              {offline === 'preparing' && t.offlinePreparing}
-              {offline === 'no-model' && t.offlineNoModel}
-              {offline === 'unsupported' && t.offlineUnavailable}
-            </p>
-          )}
-        </footer>
-      )}
+        )}
+        {overrides.forced && <p data-testid="forced">{t.forcedByUrl(overrides.ep, overrides.numThreads)}</p>}
+        {model.status === 'ready' && import.meta.env.PROD && (
+          <p data-testid="offline" data-offline={offline}>
+            {offline === 'ready' && t.offlineReady}
+            {offline === 'preparing' && t.offlinePreparing}
+            {offline === 'no-model' && t.offlineNoModel}
+            {offline === 'unsupported' && t.offlineUnavailable}
+          </p>
+        )}
+        <DiagnosticsButton error={error} timings={analysis?.timings ?? null} />
+      </footer>
     </main>
   );
 }

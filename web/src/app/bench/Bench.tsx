@@ -1,28 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
+import { copyText } from '../clipboard';
 import { DEFAULT_CONF, IOU, MAX_DET } from '../config';
 import { collectEnvironment, readBattery } from './env';
 import type { Battery, BenchEnvironment } from './env';
 import { MIN_WARM_PASSES, protocolIssues } from './protocol';
 import { holdWakeLock } from './wakelock';
-import { PRESETS, THREAD_SWEEP_IDS, formatSummary, runConfigs } from './runner';
-import type { BenchReport } from './runner';
+import { MAX_INTERLEAVED_CONFIGS, PRESETS, THREAD_SWEEP_IDS, formatSummary, reportNotes, runConfigs } from './runner';
+import type { BenchReport, RunOrder } from './runner';
 
 type RunState = 'idle' | 'running' | 'done';
 type Charging = 'unknown' | 'plugged' | 'unplugged';
-
-async function copyText(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    ta.remove();
-  }
-}
 
 /** Developer tool (English only): measures per-stage latency on this device with images picked from its gallery. */
 export function Bench() {
@@ -34,6 +22,8 @@ export function Bench() {
   const [attested, setAttested] = useState({ batterySaverOff: false, efficiencyModeOff: false, roomTemperature: false });
   const [chargingManual, setChargingManual] = useState<Charging>('unknown');
   const [includeSamples, setIncludeSamples] = useState(false);
+  const [order, setOrder] = useState<RunOrder>('sequential');
+  const [cooldownSec, setCooldownSec] = useState(0);
   const [state, setState] = useState<RunState>('idle');
   const [progress, setProgress] = useState('');
   const [report, setReport] = useState<BenchReport | null>(null);
@@ -48,7 +38,8 @@ export function Bench() {
 
   const chosen = PRESETS.filter((p) => selected[p.id]);
   const inferences = chosen.length * passes * files.length;
-  const canRun = state !== 'running' && files.length > 0 && chosen.length > 0 && passes >= 1;
+  const tooManyForInterleaved = order === 'interleaved' && chosen.length > MAX_INTERLEAVED_CONFIGS;
+  const canRun = state !== 'running' && files.length > 0 && chosen.length > 0 && passes >= 1 && !tooManyForInterleaved;
   const toggle = (id: string) => setSelected((s) => ({ ...s, [id]: !s[id] }));
 
   function onFiles(e: ChangeEvent<HTMLInputElement>) {
@@ -78,6 +69,8 @@ export function Bench() {
         files,
         passes,
         presets: chosen,
+        order,
+        cooldownSec,
         includeSamples,
         onProgress: setProgress,
         shouldCancel: () => cancelRef.current,
@@ -107,12 +100,14 @@ export function Bench() {
       finishedAt: new Date().toISOString(),
       cancelled: out.cancelled,
       page: location.origin + location.pathname,
-      settings: { passes, imageCount: files.length, imgsz: 640, smoothing: 'low', conf: DEFAULT_CONF as 0.25, iou: IOU, maxDet: MAX_DET },
+      settings: { passes, imageCount: files.length, imgsz: 640, smoothing: 'low', conf: DEFAULT_CONF as 0.25, iou: IOU, maxDet: MAX_DET, order, cooldownSec },
       images: out.images,
       environment,
       conditions: { batteryStart, batteryEnd, chargingManual, wakeLockHeld, wakeLock, hiddenDuringRun, attested },
       protocolCompliant: issues.length === 0,
       protocolIssues: issues,
+      notes: reportNotes(order, cooldownSec, out.results.filter((r) => r.ok).length),
+      paired: out.paired,
       results: out.results,
     });
     setProgress('');
@@ -180,7 +175,31 @@ export function Bench() {
       </section>
 
       <section className="control">
-        <h2>3. Passes</h2>
+        <h2>3. Run order</h2>
+        <label className="check">
+          <input type="radio" name="order" checked={order === 'sequential'} onChange={() => setOrder('sequential')} data-testid="order-sequential" /> One configuration after another
+        </label>
+        <label className="check">
+          <input type="radio" name="order" checked={order === 'interleaved'} onChange={() => setOrder('interleaved')} data-testid="order-interleaved" /> Interleaved: compare configurations fairly (up to {MAX_INTERLEAVED_CONFIGS})
+        </label>
+        <p className="muted">
+          A phone heats up and slows down during a long run, so configurations measured one after another are not comparable.
+          Interleaved mode runs every configuration on every photo in turn, keeps all their sessions in memory at once, and
+          reports paired ratios against the first one. Use it whenever you compare thread counts or engines.
+        </p>
+        {tooManyForInterleaved && (
+          <p role="alert" className="muted" data-testid="interleave-limit">
+            Interleaved mode supports at most {MAX_INTERLEAVED_CONFIGS} configurations at once (memory). Untick some.
+          </p>
+        )}
+        <label htmlFor="cooldown">
+          Pause between configurations, in seconds (one-after-another mode): <strong>{cooldownSec}</strong>
+        </label>
+        <input id="cooldown" type="number" min={0} max={600} value={cooldownSec} disabled={order === 'interleaved'} onChange={(e) => setCooldownSec(Math.min(600, Math.max(0, Math.floor(Number(e.target.value) || 0))))} data-testid="bench-cooldown" />
+      </section>
+
+      <section className="control">
+        <h2>4. Passes</h2>
         <label htmlFor="passes">
           Passes over the photo set: <strong>{passes}</strong> (protocol needs at least {MIN_WARM_PASSES})
         </label>
@@ -191,7 +210,7 @@ export function Bench() {
       </section>
 
       <section className="control">
-        <h2>4. Conditions (you confirm these)</h2>
+        <h2>5. Conditions (you confirm these)</h2>
         <label className="check">
           <input type="checkbox" checked={attested.batterySaverOff} onChange={() => setAttested((a) => ({ ...a, batterySaverOff: !a.batterySaverOff }))} data-testid="att-saver" /> Battery saver / power mode is off
         </label>

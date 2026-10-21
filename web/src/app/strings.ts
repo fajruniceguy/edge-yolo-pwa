@@ -30,6 +30,9 @@ export interface Strings {
   later: string;
   iosHint: string;
   dismiss: string;
+  copyDiagnostics: string;
+  diagnosticsCopied: string;
+  forcedByUrl: (ep: string, threads: number | undefined) => string;
 }
 
 const id: Strings = {
@@ -72,6 +75,9 @@ const id: Strings = {
   later: 'Nanti',
   iosHint: 'Pasang ke layar utama: ketuk tombol Bagikan, lalu "Tambah ke Layar Utama".',
   dismiss: 'Tutup',
+  copyDiagnostics: 'Salin info diagnostik',
+  diagnosticsCopied: 'Tersalin. Tempelkan ke pesan.',
+  forcedByUrl: (ep, th) => `Pengaturan dipaksa lewat URL: mesin=${ep}${th ? `, thread=${th}` : ''}`,
 };
 
 const en: Strings = {
@@ -114,6 +120,9 @@ const en: Strings = {
   later: 'Later',
   iosHint: 'Install: tap the Share button, then "Add to Home Screen".',
   dismiss: 'Dismiss',
+  copyDiagnostics: 'Copy diagnostics',
+  diagnosticsCopied: 'Copied. Paste it into a message.',
+  forcedByUrl: (ep, th) => `Settings forced by the URL: engine=${ep}${th ? `, threads=${th}` : ''}`,
 };
 
 export const lang: 'id' | 'en' = navigator.language.toLowerCase().startsWith('id') ? 'id' : 'en';

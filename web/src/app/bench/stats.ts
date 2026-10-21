@@ -18,6 +18,10 @@ export interface Sample {
   /** Main-thread time around the whole call, including message passing. */
   wallMs: number;
   dets: number;
+  /** Order in which samples were taken across the whole run (0-based), for checking interleaving. */
+  seq?: number;
+  /** Milliseconds since the start of the run when this sample began, to see drift over time. */
+  tMs?: number;
 }
 
 /** Stages named as in the Phase 6 protocol: preprocess / inference / NMS / total (+ wall). */
@@ -66,4 +70,35 @@ export function driftPct(samples: readonly Sample[]): number | null {
   const last = stat(samples.slice(samples.length - third).map((s) => s.inferMs));
   if (!first || !last || first.median === 0) return null;
   return (100 * (last.median - first.median)) / first.median;
+}
+
+export interface Paired {
+  /** Number of (pass, image) slots where both configurations have a warm sample. */
+  n: number;
+  /** Median of other.inferMs / base.inferMs over those slots (below 1 = `other` is faster). */
+  medianRatio: number;
+  p90Ratio: number;
+  /** Share of slots where `other` was faster than `base`. */
+  fasterShare: number;
+}
+
+/**
+ * Paired comparison of inference time for two configurations measured in the same (pass, image) slots.
+ * Only meaningful when the runs were interleaved, so both saw the same drift and heat. Pass warm samples only.
+ */
+export function pairedComparison(base: readonly Sample[], other: readonly Sample[]): Paired | null {
+  const byKey = new Map(base.map((s) => [`${s.pass}:${s.image}`, s.inferMs] as const));
+  const ratios: number[] = [];
+  for (const o of other) {
+    const b = byKey.get(`${o.pass}:${o.image}`);
+    if (b !== undefined && b > 0) ratios.push(o.inferMs / b);
+  }
+  if (ratios.length === 0) return null;
+  const sorted = [...ratios].sort((a, b) => a - b);
+  return {
+    n: ratios.length,
+    medianRatio: percentile(sorted, 0.5),
+    p90Ratio: percentile(sorted, 0.9),
+    fasterShare: ratios.filter((r) => r < 1).length / ratios.length,
+  };
 }

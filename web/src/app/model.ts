@@ -2,6 +2,10 @@ import { useSyncExternalStore } from 'react';
 import { MODEL_URL } from './config';
 import { InferenceClient } from './inference-client';
 import type { ClientSessionInfo } from './inference-client';
+import { parseOverrides } from './overrides';
+
+/** `?ep=wasm|webgpu|auto&threads=N` from the page URL (see overrides.ts). */
+export const overrides = parseOverrides(location.search);
 
 export type ModelState =
   | { status: 'loading'; loaded: number; total: number | null }
@@ -25,7 +29,7 @@ export function ensureModel(): Promise<InferenceClient> {
   setState({ status: 'loading', loaded: 0, total: null });
   const client = new InferenceClient();
   ready = client
-    .init({ modelUrl: MODEL_URL, ep: 'auto', useCache: true }, (loaded, total) =>
+    .init({ modelUrl: MODEL_URL, ep: overrides.ep, useCache: true, numThreads: overrides.numThreads }, (loaded, total) =>
       setState({ status: 'loading', loaded, total }),
     )
     .then((info) => {
