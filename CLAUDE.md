@@ -11,7 +11,7 @@ Interaction model is **capture-then-process**, not live video. Latency of 1–3 
 ## Token and file hygiene — HARD RULES
 
 - **Never** `cat`, `head`, `xxd`, `strings`, or Read any file under `model/` or any `*.onnx`, `*.pt`, `*.bin`. Inspect them only through scripts that print summaries.
-- **Never** view images in `tools/fixtures/images/` unless I ask. You don't need to see them.
+- **Never** view images in `tools/fixtures/images/` or `tools/fixtures/phone-photos/` unless I ask. You don't need to see them. The phone photos are personal (EXIF GPS, people): never commit, upload, or print their metadata beyond counts (`tools/photo_audit.py`).
 - **Scripts print summaries, never full tensors or full detection lists.** Shapes, dtypes, min/max/mean, counts, first 5 rows, max abs diff, match percentages. If a script could print more than ~50 lines, it is wrong.
 - Golden fixtures are for scripts and tests to consume. Don't Read `*.dets.json` directly; write a one-liner that summarizes it.
 - Test output: use reporters that show failures concisely. No dumping arrays in assertion messages — assert on summaries (count, max diff).

@@ -6,14 +6,18 @@ tools/.venv/
 __pycache__/
 *.pyc
 
-# Generated golden fixtures (run tools/reference.py)
-tools/fixtures/golden/
-
-# SKU-110K data: academic/non-commercial licence, not redistributed here (see README)
-tools/fixtures/images/
-tools/fixtures/ground_truth.csv
-tools/fixtures/unsorted/
+# Everything under tools/fixtures is local-only except its README: generated golden files (tools/reference.py),
+# SKU-110K images and annotations (academic/non-commercial licence, not redistributed) and personal phone photos
+# (EXIF GPS, people). Whitelisting means a new photo dropped anywhere in here can never be committed by accident.
+tools/fixtures/*
+!tools/fixtures/README.md
 docs/previews/
+
+# Personal photos / HEIC anywhere in the repo
+*.heic
+*.HEIC
+*.heif
+*.HEIF
 
 # Node / build
 node_modules/
@@ -26,3 +30,4 @@ dist/
 .DS_Store
 .claude/*.lock
 .commandcode/
+.vercel

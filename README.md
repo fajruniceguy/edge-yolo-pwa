@@ -92,6 +92,22 @@ npm run preview                                          # http://localhost:4173
 4. For a stricter check, stop `npm run preview` (Ctrl+C) with Offline unticked and reload: it must still work, because the service worker answers everything.
 5. Untick **Offline** when done. To start over: Application → Storage → "Clear site data".
 
+## Deploy to Vercel
+
+The model is gitignored, so a git-connected deploy would ship without it. Deploy a prepared `dist/` with the Vercel CLI instead:
+
+```bash
+cd web
+npm run build:deploy        # vite build, then copies vercel.json and model/best.onnx into dist/ and checks the size
+npx vercel login            # once
+npx vercel deploy dist --prod
+```
+
+- `web/vercel.json` sends the COOP/COEP/CORP headers on every response (needed for `crossOriginIsolated` and WASM threads) and long-caches the hashed `/assets/`.
+- The deployment is about 86 MB; Vercel's docs list 100 MB for CLI uploads on the Hobby plan (checked 2026-10-21), so there is little headroom. `build:deploy` fails if it is over.
+- The model is served from the same origin at `/model/best.onnx` (override with `VITE_MODEL_URL`). **A public production URL lets anyone download the weights**; read [Third-party terms](#third-party-terms) first. Vercel protects preview URLs behind a Vercel login by default, and production URLs are public.
+- After deploying, check the live URL: cross-origin isolated, model loads, a photo gives a count, and the offline test below works on it.
+
 ## Fixtures and the Python reference harness
 
 The reference harness needs three things that are **not in the repo**:

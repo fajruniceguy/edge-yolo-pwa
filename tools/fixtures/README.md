@@ -16,6 +16,14 @@ academic/non-commercial use). Get the five test images from the SKU-110K dataset
 | test_1577.jpg | 95fc1ea7de623632df53e7e71b2ceaa1 | 160 |
 | test_2418.jpg | 4137566acac345ab9c768744f4106cad | 130 |
 
+## Phone photos (local only)
+
+Put personal photos in `tools/fixtures/phone-photos/<device>/` (for example `poco-m4-pro/`, `iphone/`). The whole
+`tools/fixtures/` folder is gitignored except this README, so they cannot be committed by accident. They are never
+uploaded: the benchmark page reads photos from the phone itself. `python tools/photo_audit.py` summarises a folder
+(counts, formats, megapixels, EXIF orientation, whether GPS tags exist) without displaying any image. iPhone photos in
+HEIC cannot be decoded by Chrome on Android; export them as JPEG first.
+
 ## Known limits
 
 Measured by `tools/eval_gt.py` on these 5 images only (n=5, not a test-set metric — the
